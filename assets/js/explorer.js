@@ -18,6 +18,62 @@
     return node;
   }
 
+  /* ------------------------------------------------------------------
+     日本語の折り返し規則
+     ・語の途中で改行しない（「クラウン」を「クラ／ウン」に割らない）
+     ・助詞を行頭に送らない（「スイッチ／にカーソルを」にしない）
+     カタカナ・漢字・英数のまとまりに続く送りがなや助詞までを 1 語とみなし、
+     white-space:nowrap の span で包む。
+     長すぎる語を包むと横にはみ出すため、上限を設けて素通しする。
+     （CSS 側の word-break:auto-phrase と併用）
+     ------------------------------------------------------------------ */
+  var JP_TOKEN = /[A-Za-z0-9][A-Za-z0-9.\-]*[ぁ-ん]{0,5}|[ァ-ヶーｦ-ﾟ][ァ-ヶーｦ-ﾟ・]*[ぁ-ん]{0,5}|[一-龥々〆]+[ぁ-ん]{0,5}/g;
+  var MAX_NOWRAP = 16;   // 通常はこの長さまでを 1 語として扱う
+  var HARD_NOWRAP = 20;  // これを超える語は折り返しを許す（はみ出し防止）
+
+  function jpText(text) {
+    var parts = [];
+    var last = 0;
+    var m;
+
+    JP_TOKEN.lastIndex = 0;
+    while ((m = JP_TOKEN.exec(text)) !== null) {
+      if (m.index > last) parts.push({ nw: false, s: text.slice(last, m.index) });
+      parts.push({ nw: true, s: m[0] });
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parts.push({ nw: false, s: text.slice(last) });
+
+    /* 語の切れ目に残ったひらがな（助詞・送りがな）は直前の語に送る。
+       これがないと「切りかえ／を行います」のように助詞が行頭に来てしまう。 */
+    for (var i = 1; i < parts.length; i++) {
+      if (parts[i].nw || !parts[i - 1].nw) continue;
+      /* 閉じ括弧をまたぐ助詞も拾う（例：「（光軸）を手動で」の「を」） */
+      var lead = (parts[i].s.match(/^[ 　]*[）)\]」』】〉》]*[ぁ-ん]{1,3}/) || [''])[0];
+      if (!lead) continue;
+      /* 1〜2 文字の助詞は行頭に出さないことを優先し、長さ制限より前に送る */
+      if (lead.trim().length > 2 && parts[i - 1].s.length + lead.length > MAX_NOWRAP) continue;
+      parts[i - 1].s += lead;
+      parts[i].s = parts[i].s.slice(lead.length);
+    }
+
+    var frag = document.createDocumentFragment();
+    parts.forEach(function (p) {
+      if (!p.s) return;
+      frag.appendChild(p.nw && p.s.length <= HARD_NOWRAP
+        ? el('span', { class: 'nw' }, p.s)
+        : document.createTextNode(p.s));
+    });
+    return frag;
+  }
+
+  /** 文節単位で折り返す要素をつくる */
+  function jpEl(tag, attrs, text) {
+    var node = el(tag, attrs);
+    node.appendChild(jpText(text));
+    return node;
+  }
+
   function Explorer(config) {
     this.cfg = config;
     this.items = config.items;
@@ -77,7 +133,7 @@
         }
 
         btn.appendChild(key);
-        btn.appendChild(el('span', null, item.label));
+        btn.appendChild(jpEl('span', null, item.label));
         li.appendChild(btn);
         self.listRoot.appendChild(li);
         self.buttons[id] = btn;
@@ -120,9 +176,27 @@
 
   Explorer.prototype.bindGlobal = function () {
     var self = this;
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') self.clear();
     });
+
+    /* 図やリスト以外の場所をクリックしたらルーペを閉じる。
+       読みかけの説明は残したいので、詳細パネルはそのままにする。 */
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.closest && (t.closest('.hotspot') || t.closest('.index-list'))) return;
+      self.dismiss();
+    });
+  };
+
+  /* ルーペと強調だけを解除する（詳細パネルは残す） */
+  Explorer.prototype.dismiss = function () {
+    if (!this.selected && !this.hover) return;
+    this.selected = null;
+    this.hover = null;
+    if (this.loupe) this.loupe.classList.remove('is-visible');
+    this.syncHover();
   };
 
   /* -------------------------------------------------- ルーペ（ホバー拡大） */
@@ -208,7 +282,7 @@
       frag.appendChild(el('div', { class: 'detail__badge' }, item.badge || item.id));
     }
 
-    frag.appendChild(el('h3', { class: 'detail__title' }, item.label));
+    frag.appendChild(jpEl('h3', { class: 'detail__title' }, item.label));
 
     /* タグ */
     var tags = [];
@@ -229,13 +303,12 @@
       frag.appendChild(tagBox);
     }
 
-    frag.appendChild(el('p', { class: 'detail__desc' }, item.desc));
+    frag.appendChild(jpEl('p', { class: 'detail__desc' }, item.desc));
 
-    if (item.note) frag.appendChild(el('p', { class: 'detail__note' }, item.note));
+    if (item.note) frag.appendChild(jpEl('p', { class: 'detail__note' }, item.note));
 
-    var src = el('p', { class: 'detail__source' });
-    src.textContent = item.source || this.cfg.source || '';
-    if (src.textContent) frag.appendChild(src);
+    var sourceText = item.source || this.cfg.source || '';
+    if (sourceText) frag.appendChild(jpEl('p', { class: 'detail__source' }, sourceText));
 
     this.detail.innerHTML = '';
     this.detail.appendChild(frag);
