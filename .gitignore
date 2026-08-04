@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+
+# 作業用
+node_modules/
+*.log
+/tmp/
+/scratch/
+
+# 参考資料（配布しない）
+/reference/
+*.pdf
