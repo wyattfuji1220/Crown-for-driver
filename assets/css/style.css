@@ -353,6 +353,7 @@ h1, h2, h3, h4 {
 
 .stage {
   position: relative;
+  min-width: 0;
   background: var(--paper-raised);
   border: 1px solid var(--rule);
   border-radius: var(--radius);
@@ -382,6 +383,25 @@ h1, h2, h3, h4 {
 .stage--dark .stage__caption {
   border-bottom-color: #2a3140;
   color: #8b93a4;
+}
+
+.stage__hint {
+  display: none;
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+}
+
+.stage--dark .stage__hint { color: #8b93a4; }
+
+/* 狭い画面では図を横スクロールさせ、タップできる大きさを確保する */
+.stage__scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .diagram { display: block; width: 100%; height: auto; }
@@ -803,8 +823,8 @@ h1, h2, h3, h4 {
 /* ---------------------------------------------------------------- responsive */
 
 @media (max-width: 1080px) {
-  .explorer { grid-template-columns: 1fr; }
-  .side { position: static; }
+  .explorer { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; min-width: 0; }
   .index-list { max-height: 340px; }
 }
 
@@ -817,6 +837,8 @@ h1, h2, h3, h4 {
   .hero { padding: 58px 0 52px; }
   .card-grid { padding-top: 44px; gap: 20px; }
   .stage { padding: 12px; }
+  .stage__scroll .diagram { min-width: 680px; }
+  .stage__hint { display: block; }
   .loupe { width: 148px; height: 148px; top: 14px; right: 14px; }
   .loupe__label { font-size: 9.5px; padding: 5px 6px; }
   .explorer { padding-bottom: 48px; }
