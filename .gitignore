@@ -17,3 +17,4 @@ node_modules/
 # 参考資料（配布しない）
 /reference/
 *.pdf
+.claude/

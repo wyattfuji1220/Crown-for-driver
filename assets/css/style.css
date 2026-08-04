@@ -386,6 +386,43 @@ h1, h2, h3, h4 {
 
 .diagram { display: block; width: 100%; height: auto; }
 
+/* ---- 図版（SVG アートワーク）の描線 ---- */
+
+.art-body    { fill: var(--paper-raised); stroke: var(--ink-soft); stroke-width: 1.7;
+               stroke-linejoin: round; }
+.art-panel   { fill: #efece4; stroke: var(--ink-soft); stroke-width: 1.5; }
+.art-inset   { fill: #e4dfd3; stroke: var(--ink-mid); stroke-width: 1.3; }
+.art-key     { fill: #d9d3c4; stroke: var(--ink-mid); stroke-width: 1.3; }
+.art-screen  { fill: var(--navy-deep); stroke: var(--ink-mid); stroke-width: 1.4; }
+.art-line    { fill: none; stroke: var(--ink-soft); stroke-width: 1.6;
+               stroke-linecap: round; stroke-linejoin: round; }
+.art-hair    { fill: none; stroke: var(--ink-soft); stroke-width: 1;
+               stroke-linecap: round; opacity: .5; }
+.art-glyph   { fill: none; stroke: var(--ink); stroke-width: 1.6;
+               stroke-linecap: round; stroke-linejoin: round; }
+.art-glyph-f { fill: var(--ink); stroke: none; }
+.art-cap     { font-family: var(--font-sans); font-size: 11px; letter-spacing: .1em;
+               fill: var(--ink-soft); }
+.art-micro   { font-family: var(--font-sans); font-size: 8px; letter-spacing: .04em;
+               fill: var(--ink-mid); text-anchor: middle; }
+
+/* 暗い舞台（メーター）用 */
+.art-meter-face  { fill: #0d1119; stroke: #2f3949; stroke-width: 1.4; }
+.art-meter-ring  { fill: none; stroke: #46566e; stroke-width: 2; }
+.art-meter-hair  { fill: none; stroke: #354154; stroke-width: 1; }
+.art-meter-cap   { font-family: var(--font-sans); font-size: 10px; letter-spacing: .12em;
+                   fill: #6f7b8e; }
+.tell-red    { fill: none; stroke: var(--warn-red);   stroke-width: 2;
+               stroke-linecap: round; stroke-linejoin: round; }
+.tell-red-f  { fill: var(--warn-red);   stroke: none; }
+.tell-amb    { fill: none; stroke: var(--warn-amber); stroke-width: 2;
+               stroke-linecap: round; stroke-linejoin: round; }
+.tell-amb-f  { fill: var(--warn-amber); stroke: none; }
+.tell-txt-r  { font-family: var(--font-sans); font-weight: 700; fill: var(--warn-red);
+               text-anchor: middle; }
+.tell-txt-a  { font-family: var(--font-sans); font-weight: 700; fill: var(--warn-amber);
+               text-anchor: middle; }
+
 /* ---- ホットスポット ---- */
 
 .hotspot { cursor: pointer; }
@@ -427,6 +464,10 @@ h1, h2, h3, h4 {
   opacity: .55;
   transition: stroke .2s, opacity .2s;
 }
+
+/* ステアリングスイッチ（OM P5）は記号が A から重複するため塗りで区別する */
+.hotspot--steer .badge-dot { fill: var(--navy); stroke: var(--navy); }
+.hotspot--steer .badge-txt { fill: var(--gold-bright); }
 
 .stage--dark .hotspot .badge-dot { fill: #10151d; stroke: var(--gold-bright); }
 .stage--dark .hotspot .badge-txt { fill: var(--gold-bright); }
