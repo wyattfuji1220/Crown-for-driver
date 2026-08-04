@@ -1,0 +1,45 @@
+# GitHub Pages への配信
+#
+# Settings → Pages → Build and deployment → Source を「GitHub Actions」にすると
+# このワークフローが配信を担当する。
+# 「Deploy from a branch」のままだと暗黙のビルドが使われ、これは動かない。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Actions タブから手動で実行できるようにする（原因切り分け用）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時実行は 1 つに絞る。走っている配信は止めない。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Pages の設定を読み込む
+        uses: actions/configure-pages@v5
+
+      - name: サイト一式をアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # ビルド不要の静的サイトなので、リポジトリ直下をそのまま配信する
+          path: .
+
+      - name: 配信する
+        id: deployment
+        uses: actions/deploy-pages@v4
